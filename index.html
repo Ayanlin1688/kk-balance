@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -508,6 +509,7 @@ table.data-table tbody tr.ok td { color: var(--text); }
       <p><b>3. 任务日志</b>：使用记录里点「任务日志」，只看视频模型任务；耗时/进度需站点登录接口。</p>
       <p><b>4. 跨域要求</b>：浏览器直连中转站需要站点允许跨域（CORS）。若提示「Failed to fetch / 跨域失败」，请按 README 给站点加 CORS 头（三个接口都要）。</p>
       <p><b>5. 安装到桌面/主屏幕</b>：用 HTTPS 打开后，Chrome 菜单选「安装」，Safari 选「添加到主屏幕」。</p>
+      <p><b>隐私</b>：本页面是公开工具，任何人都能打开，但不会收集你的密钥；密钥只在你浏览器里，直接发给中转站。公共电脑请勿勾选「记住密钥」。</p>
       <p class="muted small">站点地址已内置，无需填写 · 版本 1.1.0</p>
     </div>
   </div>
@@ -1454,7 +1456,7 @@ table.data-table tbody tr.ok td { color: var(--text); }
       $('#keys').value = savedKeys;
       $('#rememberKeys').checked = true;
     }
-    if (params.get('key')) $('#keys').value = params.get('key');
+    if (params.get('key') && IS_LOCAL) $('#keys').value = params.get('key');
     $('#autoRefresh').checked = true;
     state.auto = true;
     bind();
