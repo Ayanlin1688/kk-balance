@@ -1039,11 +1039,22 @@ table.data-table tbody tr.ok td { color: var(--text); }
   function videoTablePrice(name) {
     name = String(name || '');
     if (name.includes('按秒') || name.toLowerCase().includes('per second')) return null;
-    const key = name.toLowerCase().replace(/\s+/g, '').replace('（按条计费）', '').replace('(按条计费)', '');
+    // 去掉“（按条计费）”等括号后缀，再按“最长模型名”匹配，
+    // 避免 video-v2 把 video-v2-特价版 / video-v2-480P 抢先匹配成 4.50
+    const key = name.toLowerCase().replace(/\s+/g, '')
+      .replace('（按条计费）', '').replace('(按条计费)', '')
+      .replace(/[（(][^）)]*[）)]/g, '').trim();
+    let best = null;
     for (const [model, price] of Object.entries(VIDEO_CALL_PRICES)) {
-      if (key === model || key.startsWith(model) || key.includes(model)) return price;
+      if (key === model || key.startsWith(model)) {
+        if (!best || model.length > best[0].length) best = [model, price];
+      }
     }
-    return null;
+    if (best) return best[1];
+    for (const [model, price] of Object.entries(VIDEO_CALL_PRICES)) {
+      if (key.includes(model) && (!best || model.length > best[0].length)) best = [model, price];
+    }
+    return best ? best[1] : null;
   }
   function logKind(row) {
     const t = Number(row.type || 0);
