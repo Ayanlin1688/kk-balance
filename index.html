@@ -1,6 +1,19 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+<script>
+/* 防盗链：被其他网站 iframe 嵌入时立即隐藏并尝试跳出 */
+(function () {
+  try {
+    if (window.top !== window.self) {
+      document.documentElement.style.visibility = 'hidden';
+      try { window.top.location = window.self.location.href; } catch (e) { /* 跨域时保持隐藏 */ }
+    }
+  } catch (e) {
+    document.documentElement.style.visibility = 'hidden';
+  }
+})();
+</script>
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
