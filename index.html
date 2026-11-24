@@ -343,6 +343,81 @@ table.data-table tbody tr.ok td { color: var(--text); }
   .top { padding-top: max(18px, env(safe-area-inset-top)); }
 }
 
+
+/* ---------- 充值成本计算器 ---------- */
+.calc-fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 45;
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 18px;
+  background: var(--accent);
+  color: #fff;
+  font: 600 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, .35);
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+.calc-fab:hover { background: var(--accent-dark); box-shadow: 0 10px 26px rgba(37, 99, 235, .42); }
+.calc-fab:active { transform: translateY(1px) scale(.99); }
+
+.calc-panel { gap: 12px; }
+.calc-seg {
+  display: flex; background: #e2e8f0; border-radius: 14px; padding: 4px;
+}
+.calc-seg button {
+  flex: 1; border: 0; background: transparent; padding: 11px 0;
+  border-radius: 11px; font-size: 14px; font-weight: 700; color: #5a6b82;
+  cursor: pointer; transition: .15s;
+}
+.calc-seg button.active {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, .3);
+}
+
+.calc-input-card {
+  background: #fff; border: 1px solid var(--border); border-radius: 16px;
+  padding: 14px 16px 16px;
+}
+.calc-input-card label {
+  display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px;
+}
+.calc-input-card input {
+  width: 100%; border: 0; outline: 0; font-size: 27px; font-weight: 800;
+  text-align: center; background: transparent; color: var(--text); padding: 4px 0;
+}
+.calc-input-card input::placeholder { color: #c3ccd9; font-weight: 500; }
+
+.calc-main {
+  background: var(--accent); border-radius: 16px; padding: 18px 16px;
+  text-align: center; color: #fff;
+}
+.calc-main .cap { font-size: 12.5px; color: #cfe0ff; }
+.calc-main .val { font-size: 36px; font-weight: 800; margin-top: 4px; line-height: 1.15; }
+
+.calc-row { display: flex; gap: 10px; }
+.calc-sub { flex: 1; border-radius: 14px; padding: 12px 8px; text-align: center; }
+.calc-sub .cap { font-size: 12px; }
+.calc-sub .val { font-size: 18px; font-weight: 800; margin-top: 3px; }
+.calc-profit { background: #e7f3ec; }
+.calc-profit .cap, .calc-profit .val { color: #1f9d63; }
+.calc-quota { background: #eef2f8; }
+.calc-quota .cap, .calc-quota .val { color: #44566c; }
+
+.calc-clear {
+  width: 100%; border: 0; background: #dde4ee; color: #44566c;
+  font-size: 14.5px; font-weight: 700; padding: 12px; border-radius: 12px; cursor: pointer;
+}
+.calc-clear:active { background: #cfd8e4; }
+.calc-note { text-align: center; }
+
+@media (max-width: 760px) {
+  .calc-fab { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); padding: 10px 15px; font-size: 13.5px; }
+  .calc-main .val { font-size: 32px; }
+}
+
 </style>
 </head>
 <body>
@@ -506,6 +581,51 @@ table.data-table tbody tr.ok td { color: var(--text); }
     <div class="alert-head">⚠ 消耗预警</div>
     <div id="alertList"></div>
     <div class="modal-actions center"><button id="btnAlertOk" class="primary" type="button">知道了</button></div>
+  </div>
+</div>
+
+
+<!-- 充值成本计算器：默认收起，点右下角按钮打开 -->
+<button id="calcOpen" class="calc-fab" type="button" title="打开充值成本计算器">🧮 计算器</button>
+
+<div id="calcModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-panel narrow calc-panel">
+    <div class="modal-head">
+      <div>
+        <h3>充值成本计算器</h3>
+        <div class="muted small" id="calcTip">毛利率固定 25% · 成本 = 充值 × 0.75</div>
+      </div>
+      <div class="modal-actions"><button class="ghost" data-close="calc" type="button">关闭</button></div>
+    </div>
+
+    <div class="calc-seg">
+      <button id="calcBtnF" class="active" type="button">充值 → 成本</button>
+      <button id="calcBtnB" type="button">成本 → 售价</button>
+    </div>
+
+    <div class="calc-input-card">
+      <label id="calcInLabel">客户充值金额（元）</label>
+      <input id="calcAmt" type="text" inputmode="decimal" autocomplete="off" placeholder="输入金额">
+    </div>
+
+    <div class="calc-main">
+      <div class="cap" id="calcMainCap">我的成本价</div>
+      <div class="val" id="calcMainVal">—</div>
+    </div>
+
+    <div class="calc-row">
+      <div class="calc-sub calc-profit">
+        <div class="cap">利润</div>
+        <div class="val" id="calcProfitVal">—</div>
+      </div>
+      <div class="calc-sub calc-quota">
+        <div class="cap">给 key 充额度</div>
+        <div class="val" id="calcQuotaVal">—</div>
+      </div>
+    </div>
+
+    <button id="calcClear" class="calc-clear" type="button">清空</button>
+    <div class="muted small calc-note">毛利率 25% · 成本 = 充值 × 0.75 · 额度 = 充值 × 7.5</div>
   </div>
 </div>
 
@@ -1386,6 +1506,83 @@ table.data-table tbody tr.ok td { color: var(--text); }
     }
   }
 
+
+  /* ---------------- 充值成本计算器 ---------------- */
+  const CALC = { costRatio: 0.75, profitRatio: 0.25, quotaRatio: 7.5, costPerQuota: 0.1 };
+  let calcMode = 'forward';
+
+  function calcFmtMoney(v) {
+    return '¥ ' + v.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  }
+  function calcFmtQuota(v) {
+    return Math.round(v).toLocaleString('en-US') + ' 额度';
+  }
+  function calcParse(str) {
+    const s = String(str || '').replace(/,/g, '').trim();
+    if (s === '' || s === '.') return NaN;
+    const n = parseFloat(s);
+    return n < 0 || Number.isNaN(n) ? NaN : n;
+  }
+  function calcPretty(str) {
+    let s = String(str || '').replace(/,/g, '');
+    let dot = false, out = '';
+    for (const ch of s) {
+      if (/\d/.test(ch)) out += ch;
+      else if (ch === '.' && !dot) { out += ch; dot = true; }
+    }
+    if (out === '' || out === '.') return out;
+    if (out.includes('.')) {
+      let [ip, dec] = out.split('.');
+      ip = ip || '0';
+      return parseInt(ip, 10).toLocaleString('en-US') + '.' + dec;
+    }
+    return parseInt(out, 10).toLocaleString('en-US');
+  }
+  function calcUpdate() {
+    const amt = calcParse($('#calcAmt').value);
+    if (Number.isNaN(amt)) {
+      $('#calcMainVal').textContent = '—';
+      $('#calcProfitVal').textContent = '—';
+      $('#calcQuotaVal').textContent = '—';
+      return;
+    }
+    if (calcMode === 'forward') {
+      $('#calcMainVal').textContent = calcFmtMoney(amt * CALC.costRatio);
+      $('#calcProfitVal').textContent = calcFmtMoney(amt * CALC.profitRatio);
+      $('#calcQuotaVal').textContent = calcFmtQuota(amt * CALC.quotaRatio);
+    } else {
+      const price = amt / CALC.costRatio;
+      $('#calcMainVal').textContent = calcFmtMoney(price);
+      $('#calcProfitVal').textContent = calcFmtMoney(price * CALC.profitRatio);
+      $('#calcQuotaVal').textContent = calcFmtQuota(amt / CALC.costPerQuota);
+    }
+  }
+  function calcSetMode(mode) {
+    calcMode = mode;
+    const forward = mode === 'forward';
+    $('#calcInLabel').textContent = forward ? '客户充值金额（元）' : '我的成本金额（元）';
+    $('#calcMainCap').textContent = forward ? '我的成本价' : '应售价格';
+    $('#calcTip').textContent = forward
+      ? '毛利率固定 25% · 成本 = 充值 × 0.75'
+      : '毛利率固定 25% · 售价 = 成本 ÷ 0.75';
+    $('#calcBtnF').classList.toggle('active', forward);
+    $('#calcBtnB').classList.toggle('active', !forward);
+    calcClear();
+  }
+  function calcClear() {
+    $('#calcAmt').value = '';
+    $('#calcMainVal').textContent = '—';
+    $('#calcProfitVal').textContent = '—';
+    $('#calcQuotaVal').textContent = '—';
+  }
+  function openCalc() {
+    show($('#calcModal'));
+    setTimeout(() => {
+      const el = $('#calcAmt');
+      if (el) { el.focus(); el.select(); }
+    }, 120);
+  }
+
   /* ---------------- 事件绑定 ---------------- */
   function bind() {
     $('#btnQuery').addEventListener('click', () => runQuery());
@@ -1439,6 +1636,19 @@ table.data-table tbody tr.ok td { color: var(--text); }
       e.target.value = '';
     });
     $('#btnHelp').addEventListener('click', () => show($('#helpModal')));
+    $('#calcOpen').addEventListener('click', openCalc);
+    $('#calcAmt').addEventListener('input', () => {
+      const el = $('#calcAmt');
+      const pretty = calcPretty(el.value);
+      if (pretty !== el.value) el.value = pretty;
+      calcUpdate();
+    });
+    $('#calcBtnF').addEventListener('click', () => calcSetMode('forward'));
+    $('#calcBtnB').addEventListener('click', () => calcSetMode('backward'));
+    $('#calcClear').addEventListener('click', () => {
+      calcClear();
+      $('#calcAmt').focus();
+    });
     $('#btnAlertOk').addEventListener('click', () => hide($('#alertModal')));
     $('#autoRefresh').addEventListener('change', () => {
       state.auto = $('#autoRefresh').checked;
@@ -1450,7 +1660,7 @@ table.data-table tbody tr.ok td { color: var(--text); }
       if ($('#rememberKeys').checked) saveKeys();
     });
     $$('[data-close]').forEach(btn => btn.addEventListener('click', () => {
-      const map = { records: '#recordsModal', tasks: '#taskModal', taskDetail: '#taskDetailModal', help: '#helpModal' };
+      const map = { records: '#recordsModal', tasks: '#taskModal', taskDetail: '#taskDetailModal', help: '#helpModal', calc: '#calcModal' };
       hide($(map[btn.dataset.close]));
     }));
     $$('.modal').forEach(m => m.addEventListener('click', e => {
